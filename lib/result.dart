@@ -3,10 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-//import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_to_web/scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'admob.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class ScannerResult extends StatefulWidget {
   Barcode result;
@@ -25,46 +27,64 @@ class _ScannerResultState extends State<ScannerResult> {
     return false;
   }
 
-  /*
-  late BannerAd _bannerAd;
-  bool _isBannerAdReady = false;
+  InterstitialAd? _interstitialAd;
 
-  Future<InitializationStatus> _initGoogleMobileAds() {
-    return MobileAds.instance.initialize();
-  }
+  bool _isInterstitialAdReady = false;
 
-  @override
-  void initState() {
-    _bannerAd = BannerAd(
-      adUnitId: AdHelper.bannerAdUnitId,
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdHelper.interstitialAdUnitId,
       request: AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          setState(() {
-            _isBannerAdReady = true;
-          });
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._interstitialAd = ad;
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ScannerPage()
+                  )
+              );
+            },
+          );
+
+          _isInterstitialAdReady = true;
         },
-        onAdFailedToLoad: (ad, err) {
-          print('Failed to load a banner ad: ${err.message}');
-          _isBannerAdReady = false;
-          ad.dispose();
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+          _isInterstitialAdReady = false;
         },
       ),
     );
+  }
 
-    _bannerAd.load();
-  }*/
+  void initState() {
+    _loadInterstitialAd();
+  }
+
+  @override
+  void dispose() {
+    _interstitialAd?.dispose();
+    super.dispose();
+  }
+
+  double dx = 0;
+  double dy = 0;
 
   @override
   Widget build(BuildContext context) {
+    var screen = MediaQuery.of(context);
+    double w = screen.size.width;
+    double h = screen.size.height;
+
     return WillPopScope(
       onWillPop: () => comeBackButton(context),
       child: Stack(
         children: [
           Padding(
             padding:
-                const EdgeInsets.only(top: 40, bottom: 0, left: 10, right: 8),
+            const EdgeInsets.only(top: 40, bottom: 0, left: 10, right: 8),
             child: WebView(
               initialUrl: widget.result.code,
               javascriptMode: JavascriptMode.unrestricted,
@@ -74,13 +94,27 @@ class _ScannerResultState extends State<ScannerResult> {
             ),
           ),
           Positioned(
-            bottom: 10,
-            right: 10,
-            child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                }, child: Icon(Icons.qr_code)),
-          )
+              left: dx == 0 ? w - 70 : dx,
+              top: dy == 0 ? h - 70 : dy,
+              child: Draggable(
+                  feedback: Container(
+                      child: FloatingActionButton(
+                          child: Icon(Icons.qr_code),
+                          onPressed: () {})),
+                  child: Container(
+                    child: FloatingActionButton(
+                        child: Icon(Icons.qr_code),
+                        onPressed: () {
+                          _interstitialAd?.show();
+                        }),
+                  ),
+                  childWhenDragging: Container(),
+                  onDragEnd: (details) {
+                    setState(() {
+                      dx = details.offset.dx;
+                      dy = details.offset.dy;
+                    });
+                  })),
         ],
       ),
     );
