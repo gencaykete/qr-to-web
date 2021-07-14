@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_to_web/Helper.dart';
+import 'package:qr_to_web/home.dart';
 import 'package:qr_to_web/scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'admob.dart';
@@ -23,7 +25,7 @@ class _ScannerResultState extends State<ScannerResult> {
   Completer<WebViewController> _controller = Completer<WebViewController>();
 
   Future<bool> comeBackButton(BuildContext context) async {
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
     return false;
   }
 
@@ -60,6 +62,7 @@ class _ScannerResultState extends State<ScannerResult> {
   }
 
   void initState() {
+    Helper.isScanned = true;
     _loadInterstitialAd();
   }
 
