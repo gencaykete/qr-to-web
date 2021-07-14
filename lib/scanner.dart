@@ -78,14 +78,14 @@ class _ScannerPageState extends State<ScannerPage> {
       setState(() {
         barcode = scanData;
       });
-      controller.pauseCamera();
+      /*controller.pauseCamera();
       Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => ScannerResult(barcode!)))
-          .then((value) => controller.resumeCamera());
+          .then((value) => controller.resumeCamera());*/
 
-      /*if (Uri.parse(barcode!.code).isAbsolute) {
+      if (Uri.parse(barcode!.code).isAbsolute) {
         this.isErrorUrl = false;
         controller.pauseCamera();
         Navigator.push(
@@ -97,7 +97,7 @@ class _ScannerPageState extends State<ScannerPage> {
         setState(() {
           this.isErrorUrl = true;
         });
-      }*/
+      }
     });
   }
 }
